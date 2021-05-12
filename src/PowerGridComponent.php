@@ -27,6 +27,10 @@ class PowerGridComponent extends Component
      */
     public bool $search_input = false;
     /**
+     * @var bool
+     */
+    public bool $show_export = true;
+    /**
      * @var string
      */
     public string $search = '';
