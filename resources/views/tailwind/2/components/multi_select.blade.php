@@ -110,7 +110,7 @@
                     this.options[index].selected = true;
                     this.options[index].element = event.target;
                     this.selected.push(index);
-                    window.livewire.emit('eventMultiSelect', {
+                    window.livewire.emit('powergrid:eventMultiSelect', {
                         id: '{!! $multi_select['relation_id'] !!}',
                         values: this.selectedValues()
                     });
@@ -123,7 +123,7 @@
             remove(index, option) {
                 this.options[option].selected = false;
                 this.selected.splice(index, 1);
-                window.livewire.emit('eventMultiSelect', {
+                window.livewire.emit('powergrid:eventMultiSelect', {
                     id: '{!! $multi_select['relation_id'] !!}',
                     values: this.selectedValues()
                 });

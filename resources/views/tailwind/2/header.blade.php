@@ -29,19 +29,20 @@
                     <a wire:click="exportToCsv()" href="#"
                        class="block px-4 py-2 text-gray-800 hover:bg-gray-100 hover:text-black-200">Csv</a>
                 </div>
+
             </div>
         @endif
 
-        <div style="min-width: 60px;">
-            <div wire:loading class="px-3 py-1 flex flex-col items-right justify-center">
-                <div class="loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-7 w-7 pt-3"></div>
+        <div>
+            <div wire:loading class="z-30 flex flex-col items-right justify-center">
+                <div class="mx-3 my-3 loader animate-spin ease-linear rounded-full border-2 border-t-2 border-gray-200 h-7 w-7 pt-3"></div>
             </div>
         </div>
     </div>
 
     @if($search_input)
         <div class="flex flex-row w-full flex justify-end">
-            <div class="relative w-4/12 float-end float-right">
+            <div class="relative w-4/12 float-end float-right py-3 pr-5">
               <span class="absolute inset-y-0 left-0 flex items-center pl-2">
                  <span class="p-1 focus:outline-none focus:shadow-outline">
                     <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"

@@ -10,13 +10,19 @@ use PowerComponents\LivewirePowerGrid\Services\Spout\ExportToXLS;
 use PowerComponents\LivewirePowerGrid\Traits\Checkbox;
 use PowerComponents\LivewirePowerGrid\Traits\Filter;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use App\Traits\Notify;
 
 class PowerGridComponent extends Component
 {
-
     use WithPagination,
+        Notify,
         Checkbox,
         Filter;
+
+    /**
+     * @var bool
+     */
+    public $load = true;
 
     /**
      * @var array
@@ -89,10 +95,10 @@ class PowerGridComponent extends Component
      * @var string[]
      */
     protected $listeners = [
-        'eventChangeDatePiker' => 'eventChangeDatePiker',
-        'eventChangeInput' => 'eventChangeInput',
-        'eventToggleChanged' => 'eventChangeInput',
-        'eventMultiSelect' => 'eventMultiSelect'
+        'powergrid:refresh' => 'refresh',
+        'powergrid:eventChangeDatePiker' => 'eventChangeDatePiker',
+        'powergrid:eventChangeInput' => 'eventChangeInput',
+        'powergrid:eventMultiSelect' => 'eventMultiSelect'
     ];
 
     private $collection;
@@ -148,10 +154,6 @@ class PowerGridComponent extends Component
         $this->renderFilter();
 
         $this->setUp();
-
-        if (method_exists($this, 'initActions')) {
-            $this->initActions();
-        }
     }
 
     /**
@@ -173,23 +175,89 @@ class PowerGridComponent extends Component
     }
 
     /**
-     * @return array
+     * @return  \Illuminate\Support\Collection
      */
-    protected function dataSource(): array
+    protected function data(): \Illuminate\Support\Collection
     {
-        return [];
+        return collect([]);
+    }
+
+    public function refresh()
+    {
+        $this->collection(false);
+    }
+
+    /**
+     * @param array $data
+     * @throws \Exception
+     */
+    public function eventChangeInput(array $data): void
+    {
+        $update = $this->update($data);
+        $collection = $this->collection();
+
+        if ($update) {
+            $cached = $collection->map(function ($row) use ($data) {
+                $field = $data['field'];
+                if ($row->id === $data['id']) {
+                    $row->{$field} = $data['value'];
+                }
+                return $row;
+            });
+
+            $this->collection($cached);
+
+            $this->notify('success', $this->updateMessages('success', $data['field']));
+            //session()->flash('success', $this->updateMessages('success', $data['field']));
+        }
+
+
+        $this->notify('error', $this->updateMessages('success', $data['field']));
+        //session()->flash('error', $this->updateMessages('error', $data['field']));
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection|mixed
+     * @throws \Exception
+     */
+    public function collection($cached = [])
+    {
+        if (!empty($cached)) {
+            \cache()->forget($this->id);
+            return \cache()->rememberForever($this->id, function () use ($cached) {
+                return $cached;
+            });
+        }
+
+        if (!$cached) {
+            \cache()->forget($this->id);
+        }
+
+        $cache = config('livewire-powergrid.cached_data');
+
+        if ($cache) {
+            return \cache()->rememberForever($this->id, function () {
+                return $this->data();
+            });
+        }
+
+        return $this->data();
+    }
+
+    public function load()
+    {
+        $this->load = true;
     }
 
     public function render()
     {
-        $this->columns = $this->columns();
-        $this->collection = $this->collection();
+        if ($this->load) {
+            $this->columns = $this->columns();
+            $this->collection = $this->collection();
+        }
+
         $this->tempSelected = [];
         $data = [];
-
-        if (method_exists($this, 'initActions')) {
-            $this->initActions();
-        }
 
         if (filled($this->collection)) {
 
@@ -203,19 +271,16 @@ class PowerGridComponent extends Component
             }
         }
 
+        if (session()->get('actions.messages')) {
+            foreach (session()->get('actions.messages') as $message) {
+                $this->notify($message['type'], $message['message']);
+            }
+
+            session()->forget('actions.messages');
+        }
+
         return $this->renderView($data);
 
-    }
-
-    /**
-     * @param $field
-     */
-    public function setOrder($field)
-    {
-        if ($this->orderBy === $field) {
-            $this->orderAsc = !$this->orderAsc;
-        }
-        $this->orderBy = $field;
     }
 
     private function renderView($data)
@@ -229,53 +294,14 @@ class PowerGridComponent extends Component
     }
 
     /**
-     * @param array $data
-     * @throws \Exception
+     * @param $field
      */
-    public function eventChangeInput(array $data): void
+    public function setOrder($field)
     {
-        $update = $this->update($data);
-
-        $collection = $this->collection();
-
-        if (!$update) {
-            session()->flash('error', $this->updateMessages('error', $data['field']));
-        } else {
-
-            $cached = $collection->map(function ($row) use ($data) {
-                $field = $data['field'];
-                if ($row->id === $data['id']) {
-                    $row->{$field} = $data['value'];
-                }
-                return $row;
-            });
-
-            session()->flash('success', $this->updateMessages('success', $data['field']));
-
-            $this->collection($cached);
+        if ($this->orderBy === $field) {
+            $this->orderAsc = !$this->orderAsc;
         }
-    }
-
-    /**
-     * @return \Illuminate\Support\Collection|mixed
-     * @throws \Exception
-     */
-    public function collection($cached = '')
-    {
-        if (filled($cached)) {
-            \cache()->forget($this->id);
-            return \cache()->rememberForever($this->id, function () use ($cached) {
-                return $cached;
-            });
-        }
-
-        $cache = config('livewire-powergrid.cached_data');
-        if ($cache) {
-            return \cache()->rememberForever($this->id, function () {
-                return new \Illuminate\Support\Collection($this->dataSource());
-            });
-        }
-        return new \Illuminate\Support\Collection($this->dataSource());
+        $this->orderBy = $field;
     }
 
     /**
@@ -297,7 +323,7 @@ class PowerGridComponent extends Component
         $updateMessages = [
             'success' => [
                 '_default_message' => __('Data has been updated successfully!'),
-                'status' => __('Custom Field updated successfully!'),
+                //'status' => __('Status updated successfully!'),
             ],
             "error" => [
                 '_default_message' => __('Error updating the data.'),

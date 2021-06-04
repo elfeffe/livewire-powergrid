@@ -90,7 +90,7 @@ class PowerGridCommand extends Command
                     $fillable = array_merge([$model->getKeyName()], $model->getFillable());
                     $fillable = array_merge($fillable, ['created_at', 'updated_at']);
 
-                    $dataSource = "";
+                    $data = "";
                     $columns = "[\n";
                     foreach ($fillable as $field) {
                         if (!in_array($field, $model->getHidden())) {
@@ -100,24 +100,24 @@ class PowerGridCommand extends Command
                             }))->Type;
 
                             if (in_array($type, ['timestamp', 'datetime'])) {
-                                $dataSource .= "\n".'            ->addColumn(\''.$field.'\')';
-                                $dataSource .= "\n".'            ->addColumn(\''.$field.'_formatted\', function('.$modelLastName.' $model) { '."\n".'                return Carbon::parse($model->'.$field.')->format(\'d/m/Y H:i:s\');'."\n".'            })';
+                                $data .= "\n".'            ->addColumn(\''.$field.'\')';
+                                $data .= "\n".'            ->addColumn(\''.$field.'_formatted\', function('.$modelLastName.' $model) { '."\n".'                return Carbon::parse($model->'.$field.')->format(\'d/m/Y H:i:s\');'."\n".'            })';
 
                                 $columns    .= '            Column::add()'."\n".'                ->title(__(\''.Str::camel($field.'_formatted').'\'))'."\n".'                ->field(\''.$field.'\')'."\n".'                ->hidden(),'."\n";
                                 $columns    .= '            Column::add()'."\n".'                ->title(__(\''.Str::camel($field.'_formatted').'\'))'."\n".'                ->field(\''.$field.'_formatted\')'."\n".'                ->searchable()'."\n".'                ->sortable()'."\n".'                ->makeInputDatePicker(\''.$field.'\'),'."\n";
                             } else if ($type === 'tinyint(1)') {
 
-                                $dataSource .= "\n".'            ->addColumn(\''.$field.'\')';
+                                $data .= "\n".'            ->addColumn(\''.$field.'\')';
                                 $columns    .= '            Column::add()'."\n".'                ->title(__(\''.Str::camel($field.'').'\'))'."\n".'                ->field(\''.$field.'\')'."\n".'                ->toggleable(),'."\n";
 
                             } else if ($type === 'int(11)') {
 
-                                $dataSource .= "\n".'            ->addColumn(\''.$field.'\')';
+                                $data .= "\n".'            ->addColumn(\''.$field.'\')';
                                 $columns    .= '            Column::add()'."\n".'                ->title(__(\''.Str::camel($field.'').'\'))'."\n".'                ->field(\''.$field.'\')'."\n".'                ->makeInputRange(),'."\n";
 
                             } else {
 
-                                $dataSource .= "\n".'            ->addColumn(\''.$field.'\')';
+                                $data .= "\n".'            ->addColumn(\''.$field.'\')';
                                 $columns    .= '            Column::add()'."\n".'                ->title(__(\''.Str::camel($field.'').'\'))'."\n".'                ->field(\''.$field.'\')'."\n".'                ->sortable()'."\n".'                ->searchable(),'."\n";
 
                             }
@@ -126,7 +126,7 @@ class PowerGridCommand extends Command
 
                     $columns .= "        ]\n";
 
-                    $stub = str_replace('{{ dataSource }}', $dataSource, $stub);
+                    $stub = str_replace('{{ data }}', $data, $stub);
                     $stub = str_replace('{{ columns }}', $columns, $stub);
 
                 }

@@ -87,7 +87,7 @@ return [
     | It is updated whenever the page is reloaded or a field is changed
     |
     */
-    'cached_data' => true,
+    'cached_data' => false,
 
     /*
     |--------------------------------------------------------------------------

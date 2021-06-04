@@ -1,19 +1,18 @@
 @if(config('livewire-powergrid.filter') === 'inline')
-    <tr class="border-b border-gray-200 hover:bg-gray-100">
+    <tr class="border-b border-gray-200">
 
         @if(count($make_filters))
             @if($checkbox)
                 <td class="td_{{ $column->field }}"></td>
             @endif
             @foreach($columns as $column)
-                @if($column->hidden === false)
-                    <td class="td_{{ $column->field }}">
+                    @if($column->show())
+                    <td class="td_{{ $column->field }} text-sm">
                         @if(isset($make_filters['date_picker']))
                             @foreach($make_filters['date_picker'] as $field => $date)
                                 @if($date['field'] === $column->field)
                                     @include('livewire-powergrid::tailwind.2.components.date_picker', [
                                         'inline' => true,
-                                        'class' => 'w-full'
                                     ])
                                 @endif
                             @endforeach

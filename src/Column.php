@@ -3,10 +3,12 @@
 
 namespace PowerComponents\LivewirePowerGrid;
 
+use PowerComponents\LivewirePowerGrid\UI\UI;
+
 class Column
 {
-
     public string $title = '';
+    public string|bool $badge = false;
     public bool $searchable = true;
     public bool $sortable = false;
     public string $field = '';
@@ -18,10 +20,12 @@ class Column
     public bool $visible_in_export = true;
     public array $inputs = [];
     public bool $editable = false;
+    public bool $html = false;
     public array $toggleable = [];
-    public array $click_to_copy = [];
+    public array|bool $actions = false;
+    public bool $click_to_copy = false;
     public string $data_field = '';
-
+    public int $width = 100;
     /**
      * @return static
      */
@@ -39,6 +43,31 @@ class Column
     public function title( string $title ): Column
     {
         $this->title = $title;
+        return $this;
+    }
+
+    public function html()
+    {
+        $this->html = true;
+        return $this;
+    }
+
+    public function width($width)
+    {
+        $this->width = $width;
+        return $this;
+    }
+
+    public function badge($badge = 'success')
+    {
+        $this->badge = $badge;
+        return $this;
+    }
+
+    public function actions($actions = [])
+    {
+        $this->field = 'actions_' . rand();
+        $this->actions = $actions;
         return $this;
     }
 
@@ -111,6 +140,21 @@ class Column
         return $this;
     }
 
+    public function show(): bool
+    {
+        if($this->hidden)
+        {
+            return false;
+        }
+
+        if($this->actions && !$this->editable)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     public function visibleInExport( bool $visible ): Column
     {
         $this->visible_in_export = $visible;
@@ -167,6 +211,7 @@ class Column
         $this->inputs['date_picker']['class'] = $class_attr;
         $this->inputs['date_picker']['config'] = $settings;
         $this->data_field = $data_field;
+
         return $this;
     }
 
@@ -227,16 +272,12 @@ class Column
     }
 
     /**
-     * @param $hasPermission
-     * @param string $label
+     * @param bool $hasPermission
      * @return $this
      */
-    public function clickToCopy( $hasPermission, string $label = 'copy' ): Column
+    public function clickToCopy( bool $hasPermission = true): Column
     {
-        $this->click_to_copy = [
-            'enabled' => $hasPermission,
-            'label' => $label
-        ];
+        $this->click_to_copy = $hasPermission;
         return $this;
     }
 

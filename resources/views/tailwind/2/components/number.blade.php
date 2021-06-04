@@ -11,7 +11,7 @@
                         wire:input.debounce.800ms="filterNumberStart('{{ $number['data_field'] }}', $event.target.value, '{{ addslashes($number['thousands']) }}', '{{ addslashes($number['decimal']) }}')"
                         @if($inline) style="min-width: 100px; max-width: 130px !important;" @endif
                         type="text"
-                        class="w-full block bg-white-200 text-gray-700 border border-gray-300 rounded py-2 px-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                        class="text-sm w-full block bg-white-200 text-gray-700 border border-gray-300 rounded py-2 px-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                         placeholder="MIN">
                 </div>
                 <div class="mb-1">
@@ -21,7 +21,7 @@
                         wire:input.debounce.800ms="filterNumberEnd('{{ $number['data_field'] }}', $event.target.value, '{{ addslashes($number['thousands']) }}', '{{ addslashes($number['decimal']) }}')"
                         @if($inline) style="min-width: 100px; max-width: 130px !important;" @endif
                         type="text"
-                        class="w-full block bg-white-200 text-gray-700 border border-gray-300 rounded py-2 px-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                        class="text-sm w-full block bg-white-200 text-gray-700 border border-gray-300 rounded py-2 px-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                         placeholder="MAX">
                 </div>
             </div>

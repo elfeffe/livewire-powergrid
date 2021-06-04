@@ -1,4 +1,5 @@
-<div class="flex flex-col">
+<div class="relative flex flex-col" @if(!$load) wire:init="load" @endif>
+    <div class="absolute top-0 left-0 w-full z-20 bg-gray-300 opacity-25 h-full" wire:loading ></div>
     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="py-2 align-middle inline-block min-w-full w-full sm:px-6 lg:px-8">
 
@@ -12,28 +13,19 @@
                 @endif
             @endif
 
-            <div class="message pt-2">
-                @if (session()->has('success'))
-                    @include('livewire-powergrid::tailwind.2.alert.success')
-                @elseif (session()->has('error'))
-                    @include('livewire-powergrid::tailwind.2.alert.error')
-                @endif
-            </div>
-
-            @include('livewire-powergrid::tailwind.2.loading')
             <div
-                class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg overflow-x-auto bg-white rounded-lg shadow overflow-y-auto relative">
-                <table class="min-w-full divide-y divide-gray-200">
+                class="shadow border-b border-gray-200 sm:rounded-lg overflow-x-auto bg-white rounded-lg shadow overflow-auto relative">
+                <table class="min-w-full divide-y divide-gray-200  overflow-y-auto whitespace-nowrap">
                     <thead class="bg-gray-50">
                     <tr>
                         @include('livewire-powergrid::tailwind.2.checkbox-all')
 
                         @foreach($columns as $column)
-                            @if($column->hidden === false)
-
+                            @if($column->show())
                                 <th
-                                    class="px-2 pr-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
-                                    style="width: max-content;@if($column->sortable)cursor:pointer; @endif {{ ($column->header_style != '') ? $column->header_style:'' }}"
+                                    id="th_{{ $column->field }}"
+                                    class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap leading-4 font-semibold"
+                                    style="@if($column->sortable)cursor:pointer; @endif {{ ($column->header_style != '') ? $column->header_style:'' }}"
                                 >
                                     <div class="align-content-between">
                                         @if($column->sortable === true)
@@ -51,98 +43,108 @@
                                             @if($column->sortable === true) wire:click="setOrder('{{$column->field}}')" @endif>
                                             {{$column->title}}
                                         </span>
-
                                         @include('livewire-powergrid::tailwind.2.clear_filter')
-
                                     </div>
                                 </th>
                             @endif
                         @endforeach
-
-                        @if(isset($actionBtns) && count($actionBtns))
-                            <th scope="col" colspan="{{count($actionBtns)}}"
-                                class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ trans('livewire-powergrid::datatable.labels.action') }}
-                            </th>
-                        @endif
                     </tr>
                     </thead>
                     <tbody class="text-gray-800">
 
                     @include('livewire-powergrid::tailwind.2.inline-filter')
 
-                    @if(count($data) === 0)
-                        <tr class="border-b border-gray-200 hover:bg-gray-100 ">
+                    @if(empty($data))
+                        <tr class="border-b border-gray-200 hover:bg-gray-100 text-sm">
                             <td class="text-center p-2" colspan="{{ (($checkbox) ? 1:0)
                         + ((isset($actionBtns)) ? 1: 0)
                         + (count($columns))
                         }}">
-                                <span>{{ trans('livewire-powergrid::datatable.labels.no_data') }}</span>
+                                @if(!$load)
+                                    <div class="animate-pulse flex space-x-4">
+                                        <div class="flex-1 space-y-4 py-1">
+                                            @for ($k = $perPage ; $k > 0; $k--)
+                                                <div class="h-10 bg-gray-200"></div>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                @else
+                                    <span>{{ trans('livewire-powergrid::datatable.labels.no_data') }}</span>
+                                @endif
                             </td>
                         </tr>
                     @endif
 
                     @foreach($data as $row)
-                        <tr class="border-b border-gray-200 hover:bg-gray-100" wire:key="{{ $row->id }}">
+                        <tr class="border-b border-gray-200 hover:bg-gray-100 text-sm" wire:key="{{ 'tr_' . $row->id . time() }}">
 
                             @include('livewire-powergrid::tailwind.2.checkbox-row')
 
                             @foreach($columns as $column)
+
                                 @php
                                     $field = $column->field;
                                 @endphp
 
-                                @if($column->hidden === false)
-                                    <td class="px-3 py-2 whitespace-nowrap {{ ($column->body_class != '') ? $column->body_class : '' }}"
-                                        style=" {{ ($column->body_style != '') ? $column->body_style : '' }}"
-                                    >
-                                        @if($column->editable === true)
-                                            <span class="flex justify-between">
-                                                <div>
-                                                    @include('livewire-powergrid::tailwind.2.components.editable')
-                                                </div>
-                                                <div>
-                                                    @if(count($column->click_to_copy))
-                                                        @if($column->click_to_copy['enabled'])
-                                                            <button
-                                                                style="width: 24px; height: 30px; background-repeat: no-repeat;"
-                                                                onclick="copyToClipboard(this)" value="copy"
-                                                                class="img_copy" data-value="{{ $row->$field }}"
-                                                                title="{{ $column->click_to_copy['label'] }}"></button>
-                                                        @endif
-                                                    @endif
-                                                </div>
-                                            </span>
-
-                                        @elseif(count($column->toggleable) > 0)
-                                            @include('livewire-powergrid::tailwind.2.components.toggleable')
-                                        @else
-                                            <span class="flex justify-between">
-                                                <div>
-                                                    {!! $row->$field !!}
-                                                </div>
-                                                <div>
-                                                    @if(count($column->click_to_copy))
-                                                        @if($column->click_to_copy['enabled'])
-                                                            <button
-                                                                style="width: 24px; height: 30px; background-repeat: no-repeat;"
-                                                                onclick="copyToClipboard(this)" value="copy"
-                                                                class="img_copy" data-value="{{ $row->$field }}"
-                                                                title="{{ $column->click_to_copy['label'] }}"></button>
-                                                        @endif
-                                                    @endif
-                                                </div>
-                                            </span>
-
+                                @if($column->show())
+                                    <td class="px-3 py-2 {{ ($column->body_class != '') ? $column->body_class : '' }}"
+                                        style="@if($column->width) max-width: {{ $column->width }}px;
+                                            overflow: hidden;
+                                            text-overflow: ellipsis;
+                                            white-space: nowrap;
                                         @endif
+                                        {{ ($column->body_style != '') ? $column->body_style : '' }}"
+                                        id="td_{{ $column->field }}"
+                                    >
+                                        <div class="flex justify-between">
+
+                                            @if(!$column->editable)
+                                                @if($column->badge)
+                                                        @UIBadge($row->status, $row->badgeType())
+                                                @else
+                                                    <div>
+                                                        @if(!$column->html)
+                                                            {!! $row->$field !!}
+                                                        @else
+                                                            {{ $row->$field }}
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            @endif
+
+                                            @if($column->editable)
+                                                <div class="flex flex-row space-x-2 @if(!$column->actions) w-full @endif">
+                                                    @if($column->actions)
+                                                        @foreach($column->actions as $action)
+                                                            @if($action->renderIf($row))
+
+                                                                <livewire:dynamic-component
+                                                                    :component="$action->ui->component"
+                                                                    :model="$row"
+                                                                    :route="$action->ui->route"
+                                                                    :actionClass="get_class($action)"
+                                                                    :key="$action->ui->component . $row->id . $loop->index . time()"
+                                                                />
+                                                            @endif
+
+                                                        @endforeach
+                                                    @else
+                                                        @include('livewire-powergrid::tailwind.2.components.editable')
+                                                    @endif
+                                                </div>
+                                            @endif
+
+                                            @if($column->click_to_copy)
+                                                <div
+                                                    x-data="{ input: 'deeee' }"
+                                                    class="w-6 h-6 bg-blue-200"
+                                                    @click="$clipboard(input)"
+                                                    title="{{ __('Copy') }}"></div>
+                                            @endif
+                                        </div>
                                     </td>
                                 @endif
                             @endforeach
-
-                            @include('livewire-powergrid::tailwind.2.actions')
-
-                        </tr>
-                        <tr class="child_{{ $row->id }} hidden">
                         </tr>
                     @endforeach
                     </tbody>
@@ -151,7 +153,7 @@
         </div>
     </div>
 
-    <div class="flex flex-row w-full flex justify-between pt-3 bg-white overflow-y-auto relative">
+    <div class="p-5 flex flex-row w-full flex justify-between pt-3 bg-white overflow-y-auto relative">
         @if($perPage_input)
             <div class="flex flex-row">
                 <div class="relative h-10">
@@ -165,11 +167,6 @@
                     </select>
                     <div
                         class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                             viewBox="0 0 20 20">
-                            <path
-                                d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                        </svg>
                     </div>
                 </div>
                 <div class="pl-4 hidden sm:block md:block lg:block w-full"
