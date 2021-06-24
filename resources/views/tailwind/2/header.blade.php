@@ -3,8 +3,8 @@
     <div class="flex flex-row">
 
         @if($show_export)
-            <div x-data="{show: false}" @click.away="show = false">
-                <button @click="show = ! show"
+            <div x-data="{show: false}" x-on:click.away="show = false">
+                <button x-on:click="show = ! show"
                         class="block w-full bg-white-200 text-gray-700 border border-gray-300 rounded py-1.5 px-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
                     <div class="flex">
                 <span>

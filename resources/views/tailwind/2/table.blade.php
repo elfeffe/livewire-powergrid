@@ -138,7 +138,7 @@
                                                 <div
                                                     x-data="{ input: 'deeee' }"
                                                     class="w-6 h-6 bg-blue-200"
-                                                    @click="$clipboard(input)"
+                                                    x-on:click="$clipboard(input)"
                                                     title="{{ __('Copy') }}"></div>
                                             @endif
                                         </div>

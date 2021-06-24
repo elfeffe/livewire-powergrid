@@ -1,6 +1,6 @@
 <div class="w-full my-2 pb-2">
     <div x-data={show:true} class="rounded-sm">
-        <div class="border border-b-0 bg-blue-100 px-4 py-3 cursor-pointer" id="headingOne" @click="show=!show">
+        <div class="border border-b-0 bg-blue-100 px-4 py-3 cursor-pointer" id="headingOne" x-on:click="show=!show">
             <button class="appearance-none text-black font-medium text-gray-500 hover:text-blue-700 focus:outline-none"
                     type="button">
                 {{ trans('livewire-powergrid::datatable.buttons.filter') }}

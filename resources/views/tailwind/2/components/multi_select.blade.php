@@ -43,7 +43,7 @@
                             </svg>
 
                         </button>
-                        <button type="button" x-show="isOpen() === false" @click="close"
+                        <button type="button" x-show="isOpen() === false" x-on:click="close"
                                 class="cursor-pointer w-6 h-6 text-gray-600 outline-none focus:outline-none">
                             <svg class="fill-current h-4 w-4" viewBox="0 0 20 20">
                                 <path d="M2.582,13.891c-0.272,0.268-0.709,0.268-0.979,0s-0.271-0.701,0-0.969l7.908-7.83
@@ -63,7 +63,7 @@
                         <template x-for="(option,index) in options" :key="option">
                             <div>
                                 <div class="cursor-pointer w-full border-gray-100 rounded-t border-b hover:bg-teal-100"
-                                     @click="select(index,$event)">
+                                     x-on:click="select(index,$event)">
                                     <div x-bind:class="option.selected ? 'border-teal-600' : ''"
                                          class="flex w-full items-center p-2 pl-2 border-transparent border-l-2 relative">
                                         <div class="w-full items-center flex">
